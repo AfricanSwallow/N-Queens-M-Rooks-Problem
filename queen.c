@@ -25,12 +25,13 @@ int main(void) {
         Reset();
         Visit(0);
         printf("%d\n", sol_cnt);
+        free(diff);
+        free(sum);
+        free(visit_col);
+        free(isQueen);
     }
     
-    free(diff);
-    free(sum);
-    free(visit_col);
-    free(isQueen);
+    
 }
 
 void Visit(int row) {
