@@ -13,9 +13,8 @@ typedef struct _piece {
 }Piece;
 Piece *piece;
 
-
 void Visit(int row, int numQueens, int numRooks);
-bool valid(int row, int column, bool IsQueen, int numQueens, int numRooks);
+bool Valid(int row, int column, bool IsQueen, int numQueens, int numRooks);
 void Reset(int total);
 
 int main(void) {
@@ -54,7 +53,6 @@ void Visit(int row, int numQueens, int numRooks) {
                     Visit(row+1, numQueens-1, numRooks);
                 }
                 
-
                 //Restore tracking
                 visit_col[i] = false;
                 piece[row].diff = INT_MAX;
@@ -67,30 +65,20 @@ void Visit(int row, int numQueens, int numRooks) {
     
 }
 
-bool valid(int row, int column, bool ThisIsQueen, int numQueens, int numRooks) {
-    int difference = row - column;
-    int summation = row + column;
-    //See if there are enough queens or rooks
-    if(ThisIsQueen) {
-        if(numQueens == 0)
-            return false;
-    }else
-        if(numRooks == 0)
-            return false;
-
-    if(visit_col[column] == false) {
-        for(int i = 0; i < row; i++) {
-            if(ThisIsQueen) {
-                if(difference == piece[i].diff || summation == piece[i].sum)
-                    return false;
-            }else {
-                if((difference == piece[i].diff || summation == piece[i].sum) && piece[i].isQueen) 
-                    return false;
-            }
-        }
-        return true;
-    }else 
+bool Valid(int row, int column, bool ThisIsQueen, int numQueens, int numRooks) {
+    int diff = row - column;
+    int sum = row + column;
+    bool IsDiagonal;
+    //See if there are enough queens or rooks or if it is the same column
+    if((ThisIsQueen && numQueens == 0) || (!ThisIsQueen && numRooks == 0) || visit_col[column]) 
         return false;
+
+    for(int i = 0; i < row; i++) {
+        IsDiagonal = diff == piece[i].diff || sum == piece[i].sum;
+        if((ThisIsQueen && IsDiagonal) || (!ThisIsQueen && IsDiagonal && piece[i].isQueen)) 
+            return false;
+    }
+    return true;
 }
 
 void Reset(int total) {
