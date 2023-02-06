@@ -7,10 +7,16 @@ int N, M, total;
 int *diff;
 int *sum;
 bool *visit_col, *isQueen;
-int sol_cnt = 0, put_cnt = 0, N_cnt, M_cnt;
+int sol_cnt = 0, N_cnt, M_cnt;
+typedef struct _piece {
+    int diff;
+    int sum;
+    bool isQueen;
+}Piece;
 
-void Visit(int row);
-bool valid(int row, int column, bool IsQueen);
+
+void Visit(int row, int numQueens, int numRooks);
+bool valid(int row, int column, bool IsQueen, int numQueens, int numRooks);
 void Reset(void);
 
 int main(void) {
@@ -23,7 +29,7 @@ int main(void) {
         visit_col = (bool*) malloc(sizeof(bool)*total);
         isQueen = (bool*) malloc(sizeof(bool)*total);
         Reset();
-        Visit(0);
+        Visit(0, N, M);
         printf("%d\n", sol_cnt);
         free(diff);
         free(sum);
@@ -34,7 +40,7 @@ int main(void) {
     
 }
 
-void Visit(int row) {
+void Visit(int row, int numQueens, int numRooks) {
     if(row == total) {
         sol_cnt++;
         // printf("Found\n");
@@ -43,34 +49,27 @@ void Visit(int row) {
 
     for(int j = 0; j < 2; j++) {
         for(int i = 0; i < total; i++) {
-            if(valid(row, i, j)) {
+            if(valid(row, i, j, numQueens, numRooks)) {
                 visit_col[i] = true;
-                diff[put_cnt] = row - i;
-                sum[put_cnt] = row + i;
+                diff[row] = row - i;
+                sum[row] = row + i;
                 if(j == 0) {
                     // printf("Rook visit (%d, %d)\n", row, i);
-                    M_cnt--;
+                    Visit(row+1, numQueens, numRooks-1);
                 }
                 else {
                     // printf("Queen visit (%d, %d)\n", row, i);
-                    isQueen[put_cnt] = true;
-                    N_cnt--;
+                    isQueen[row] = true;
+                    Visit(row+1, numQueens-1, numRooks);
                 }
-                put_cnt++;
                 
-                Visit(row+1);
 
                 //Restore tracking
                 visit_col[i] = false;
-                put_cnt--;
-                diff[put_cnt] = INT_MAX;
-                sum[put_cnt] = INT_MAX;
-                if(j == 0)
-                    M_cnt++;
-                else {
-                    isQueen[put_cnt] = false;
-                    N_cnt++;
-                }
+                diff[row] = INT_MAX;
+                sum[row] = INT_MAX;
+                if(j == 1)
+                    isQueen[row] = false;
             }
         }
     }
@@ -78,19 +77,19 @@ void Visit(int row) {
     
 }
 
-bool valid(int row, int column, bool ThisIsQueen) {
+bool valid(int row, int column, bool ThisIsQueen, int numQueens, int numRooks) {
     int difference = row - column;
     int summation = row + column;
     //See if there are enough queens or rooks
     if(ThisIsQueen) {
-        if(N_cnt == 0)
+        if(numQueens == 0)
             return false;
     }else
-        if(M_cnt == 0)
+        if(numRooks == 0)
             return false;
 
     if(visit_col[column] == false) {
-        for(int i = 0; i < put_cnt; i++) {
+        for(int i = 0; i < row; i++) {
             if(ThisIsQueen) {
                 if(difference == diff[i] || summation == sum[i])
                     return false;
@@ -110,5 +109,4 @@ void Reset(void) {
     memset(visit_col, false, sizeof(bool)*total);
     memset(isQueen, false, sizeof(bool)*total);
     sol_cnt = 0;
-    put_cnt = 0;
 }
