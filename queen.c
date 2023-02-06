@@ -4,40 +4,31 @@
 #include <stdbool.h>
 #include <limits.h>
 int N, M, total;
-int *diff;
-int *sum;
-bool *visit_col, *isQueen;
-int sol_cnt = 0, N_cnt, M_cnt;
+bool *visit_col;
+int sol_cnt = 0;
 typedef struct _piece {
     int diff;
     int sum;
     bool isQueen;
 }Piece;
+Piece *piece;
 
 
 void Visit(int row, int numQueens, int numRooks);
 bool valid(int row, int column, bool IsQueen, int numQueens, int numRooks);
-void Reset(void);
+void Reset(int total);
 
 int main(void) {
     while(scanf("%d%d", &N, &M) == 2) {
         total = N + M;
-        N_cnt = N;
-        M_cnt = M;
-        diff = (int*) malloc(sizeof(int)*total);
-        sum = (int*) malloc(sizeof(int)*total);
         visit_col = (bool*) malloc(sizeof(bool)*total);
-        isQueen = (bool*) malloc(sizeof(bool)*total);
-        Reset();
+        piece = (Piece*) malloc(sizeof(Piece)*total);
+        Reset(total);
         Visit(0, N, M);
         printf("%d\n", sol_cnt);
-        free(diff);
-        free(sum);
         free(visit_col);
-        free(isQueen);
+        free(piece);
     }
-    
-    
 }
 
 void Visit(int row, int numQueens, int numRooks) {
@@ -51,25 +42,24 @@ void Visit(int row, int numQueens, int numRooks) {
         for(int i = 0; i < total; i++) {
             if(valid(row, i, j, numQueens, numRooks)) {
                 visit_col[i] = true;
-                diff[row] = row - i;
-                sum[row] = row + i;
+                piece[row].diff = row - i;
+                piece[row].sum = row + i;
                 if(j == 0) {
                     // printf("Rook visit (%d, %d)\n", row, i);
                     Visit(row+1, numQueens, numRooks-1);
                 }
                 else {
                     // printf("Queen visit (%d, %d)\n", row, i);
-                    isQueen[row] = true;
+                    piece[row].isQueen = true;
                     Visit(row+1, numQueens-1, numRooks);
                 }
                 
 
                 //Restore tracking
                 visit_col[i] = false;
-                diff[row] = INT_MAX;
-                sum[row] = INT_MAX;
-                if(j == 1)
-                    isQueen[row] = false;
+                piece[row].diff = INT_MAX;
+                piece[row].sum = INT_MAX;
+                piece[row].isQueen = false;
             }
         }
     }
@@ -91,10 +81,10 @@ bool valid(int row, int column, bool ThisIsQueen, int numQueens, int numRooks) {
     if(visit_col[column] == false) {
         for(int i = 0; i < row; i++) {
             if(ThisIsQueen) {
-                if(difference == diff[i] || summation == sum[i])
+                if(difference == piece[i].diff || summation == piece[i].sum)
                     return false;
             }else {
-                if((difference == diff[i] || summation == sum[i]) && isQueen[i]) 
+                if((difference == piece[i].diff || summation == piece[i].sum) && piece[i].isQueen) 
                     return false;
             }
         }
@@ -103,10 +93,12 @@ bool valid(int row, int column, bool ThisIsQueen, int numQueens, int numRooks) {
         return false;
 }
 
-void Reset(void) {
-    memset(diff, INT_MAX, sizeof(int)*total);
-    memset(sum, INT_MAX, sizeof(int)*total);
+void Reset(int total) {
     memset(visit_col, false, sizeof(bool)*total);
-    memset(isQueen, false, sizeof(bool)*total);
+    for(int i = 0; i < total; i++) {
+        piece[i].diff = INT_MAX;
+        piece[i].sum = INT_MAX;
+        piece[i].isQueen = false;
+    }
     sol_cnt = 0;
 }
